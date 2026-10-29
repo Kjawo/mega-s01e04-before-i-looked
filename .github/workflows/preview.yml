@@ -1,0 +1,77 @@
+name: Publish digest preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      include_marker:
+        description: Include the lane marker for the approved review
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: npm install --global pnpm@10.34.9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm typecheck
+      - name: Export the live digest as one HTML file
+        env:
+          LANE_MARKER: ${{ inputs.include_marker && secrets.LANE_MARKER || '' }}
+          INCLUDE_MARKER: ${{ inputs.include_marker }}
+          PORT: '8787'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$INCLUDE_MARKER" == "true" && -z "$LANE_MARKER" ]]; then
+            echo "The review marker has not been configured."
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/rig-preview"
+          pnpm start > "$RUNNER_TEMP/rig-preview-server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl --silent --fail http://127.0.0.1:8787/health > /dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --silent --show-error --fail http://127.0.0.1:8787/digest/2026-10-28 \
+            --output "$RUNNER_TEMP/rig-preview/index.html"
+          if [[ "$INCLUDE_MARKER" == "true" ]]; then
+            grep --fixed-strings --quiet -- "$LANE_MARKER" "$RUNNER_TEMP/rig-preview/index.html"
+          else
+            grep --fixed-strings --quiet -- 'no marker set' "$RUNNER_TEMP/rig-preview/index.html"
+          fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/rig-preview
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy the approved preview
+        id: deployment
+        uses: actions/deploy-pages@v4
