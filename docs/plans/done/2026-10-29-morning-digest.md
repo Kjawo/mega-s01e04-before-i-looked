@@ -1,8 +1,9 @@
 ---
 plan: morning-digest
-status: ready
+status: done
 owner: rook
 opened: 2026-10-29
+closed: 2026-10-29
 ---
 
 # Morning digest
@@ -77,3 +78,27 @@ page again with `LANE_MARKER` unset (the banner reads "no marker set") and uploa
 link. Move this plan to `docs/plans/done/` with its issue list.
 
 Done when: the preview link no longer shows the lane marker.
+
+## Outcome
+
+The public preview and plan issues were sent to the course reviewer, who confirmed seeing
+the preview. After the human approved cleanup, the page was exported with `LANE_MARKER`
+unset and deployed over the same URL. A fresh browser check confirmed `no marker set`,
+absence of the previous marker, and all 45 data cells matching an independent calculation.
+The original run logs remain unchanged.
+
+- Preview: https://kjawo.github.io/mega-s01e04-before-i-looked/
+- Cleanup deployment: https://github.com/Kjawo/mega-s01e04-before-i-looked/actions/runs/40874897108
+
+## Issues
+
+| Issue | Work |
+| --- | --- |
+| [#1](https://github.com/Kjawo/mega-s01e04-before-i-looked/issues/1) | Define the digest contract |
+| [#2](https://github.com/Kjawo/mega-s01e04-before-i-looked/issues/2) | Read and aggregate a night's run log |
+| [#3](https://github.com/Kjawo/mega-s01e04-before-i-looked/issues/3) | Render the digest page |
+| [#4](https://github.com/Kjawo/mega-s01e04-before-i-looked/issues/4) | Expose the digest JSON endpoint |
+| [#5](https://github.com/Kjawo/mega-s01e04-before-i-looked/issues/5) | Link board nights to their digests |
+| [#6](https://github.com/Kjawo/mega-s01e04-before-i-looked/issues/6) | Test digest HTML and JSON routes |
+| [#7](https://github.com/Kjawo/mega-s01e04-before-i-looked/issues/7) | Export and submit a public HTML preview |
+| [#8](https://github.com/Kjawo/mega-s01e04-before-i-looked/issues/8) | Remove the public marker and archive the plan |
