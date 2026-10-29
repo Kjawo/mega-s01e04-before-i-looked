@@ -38,7 +38,7 @@ export interface StatusCounts {
 export interface NightSummary {
   night: string;
   counts: StatusCounts;
-  /** Nonblank lines with invalid JSON or an invalid event shape. */
+  /** Invalid JSON/event records, including blank or whitespace-only lines. */
   badLines: number;
 }
 
@@ -47,13 +47,14 @@ export interface NightDigest extends NightSummary {
   rows: DigestRow[];
 }
 
-/** null means no file; an existing empty file has zero rows/counts/badLines. */
+/** null means no file or invalid night; an empty file has zero rows/counts/badLines. */
 export type ReadNightResult = NightDigest | null;
 
 /**
- * Read runsDir/<night>.jsonl synchronously. Blank lines are ignored; malformed
- * lines increase badLines and never abort the night. Other I/O errors propagate.
- * Night values outside YYYY-MM-DD return null before any file access.
+ * Read runsDir/<night>.jsonl synchronously. Invalid records (including blank
+ * lines) increase badLines and never abort the night. A final newline terminates
+ * its record, without creating another one. Other I/O errors propagate.
+ * Night values outside valid calendar dates in YYYY-MM-DD return null before I/O.
  * Consumers share this result for HTML, JSON, and board summaries.
  */
 export type ReadNight = (runsDir: string, night: string) => ReadNightResult;
